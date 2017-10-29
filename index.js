@@ -1,14 +1,10 @@
 var async = require('async');
 var request = require('request');
 var cheerio = require('cheerio');
-var Movies = require('./models/movies');
-
 var mongoose = require('mongoose');
-var mongoDB = 'mongodb://zhazero:magicjedi@ds121190.mlab.com:21190/metacritic_test';
+var mongoDB = 'mongodb://localhost:27017/test';
 
-mongoose.connect(mongoDB, {
-	useMongoClient: true
-});
+mongoose.connect(mongoDB);
 
 var db = mongoose.connection;
 
@@ -28,7 +24,6 @@ async.whilst(
 		return (indexExists);
 	},
 	function(next){
-
 		var letter = ['','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
 		var options = {
 			url: 'http://www.metacritic.com/browse/movies/title/dvd/' + letter[indexCount] + '?page=' + page,
@@ -64,16 +59,6 @@ async.whilst(
 					title: titles[i]
 				}
 				metaData.push(scoresTitles);
-				var movie = new Movies(
-					{
-						title: titles[i],
-						score: scores[i]
-					}
-				)
-
-				movie.save(function(err) {
-					if(err) { console.log(err) }
-				})
 			}
 
 			console.log(metaData);
