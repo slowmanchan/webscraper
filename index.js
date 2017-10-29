@@ -1,10 +1,14 @@
 var async = require('async');
 var request = require('request');
 var cheerio = require('cheerio');
-var mongoose = require('mongoose');
-var mongoDB = 'mongodb://localhost:27017/test';
+var Movies = require('./models/movies');
 
-mongoose.connect(mongoDB);
+var mongoose = require('mongoose');
+var mongoDB = 'mongodb://zhazero:magicjedi@ds121190.mlab.com:21190/metacritic_test';
+
+mongoose.connect(mongoDB, {
+	useMongoClient: true
+});
 
 var db = mongoose.connection;
 
@@ -24,6 +28,7 @@ async.whilst(
 		return (indexExists);
 	},
 	function(next){
+
 		var letter = ['','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
 		var options = {
 			url: 'http://www.metacritic.com/browse/movies/title/dvd/' + letter[indexCount] + '?page=' + page,
@@ -58,7 +63,28 @@ async.whilst(
 					score: scores[i],
 					title: titles[i]
 				}
+
+				Movies.findOne({"title": titles[i]})
+					.exec(function(err, item) {
+						if (err) { console.log(err) };
+						if (!item) {
+							console.log('nothing found, creating')
+							Movies.create(
+								{
+									title: titles[i],
+									score: scores[i]
+								}, function(err, createdItem) {
+									if (err) {
+										console.log(err)
+										return null;
+									}
+								}
+							)
+						}
+					})
 				metaData.push(scoresTitles);
+
+
 			}
 
 			console.log(metaData);
@@ -80,4 +106,4 @@ async.whilst(
 
 	},
 	function(err) { console.log(err) }
-);
+)
